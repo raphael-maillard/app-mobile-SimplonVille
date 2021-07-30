@@ -57,12 +57,16 @@ function formulaire() {
         console.log(photo.uri)
         setPreviewVisible(true)
         setCapturedImage(photo)
+        MediaLibrary.requestPermissionsAsync()
         return photo.uri
     }
 
     const __savePhoto = async () => {
+        console.log(MediaLibrary.getPermissionsAsync())
 
-        const asset = await MediaLibrary.createAssetAsync(__takePicture)
+        const uri = __takePicture.toString()
+
+        const asset = await MediaLibrary.createAssetAsync(uri)
         console.log("enregistrement...")
     }
 
