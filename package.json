@@ -8,12 +8,14 @@
     "eject": "expo eject"
   },
   "dependencies": {
+    "@expo/ngrok": "^4.1.0",
     "@react-native-community/masked-view": "^0.1.11",
-    "@react-native-picker/picker": "^1.16.3",
+    "@react-native-picker/picker": "1.16.1",
     "@react-navigation/native": "^5.9.4",
     "@react-navigation/stack": "^5.14.5",
     "expo": "~42.0.1",
     "expo-camera": "~11.2.2",
+    "expo-cli": "^4.10.1",
     "expo-media-library": "~12.1.2",
     "expo-status-bar": "~1.0.4",
     "final-form": "^4.20.2",
@@ -22,16 +24,16 @@
     "react-final-form": "^6.5.3",
     "react-native": "https://github.com/expo/react-native/archive/sdk-42.0.0.tar.gz",
     "react-native-form-component": "^0.1.17",
-    "react-native-gesture-handler": "^1.10.3",
-    "react-native-reanimated": "^2.2.0",
+    "react-native-gesture-handler": "~1.10.2",
+    "react-native-reanimated": "~2.2.0",
     "react-native-safe-area-context": "3.2.0",
-    "react-native-screens": "^3.4.0",
+    "react-native-screens": "~3.4.0",
     "react-native-select-dropdown": "^1.0.9",
     "react-native-web": "~0.13.12",
     "react-router-native": "^5.2.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.9.0",
+    "@babel/core": "~7.9.0",
     "eslint-plugin-react-hooks": "^4.2.0"
   },
   "private": true

@@ -5,6 +5,7 @@ import { Camera } from 'expo-camera'
 import { Picker } from '@react-native-picker/picker'
 
 let camera = Camera
+let photoUrl = null;
 
 function formulaire() {
 
@@ -38,7 +39,8 @@ function formulaire() {
     const [previewVisible, setPreviewVisible] = React.useState(false);
     const [capturedImage, setCapturedImage] = React.useState(null);
     const [cameraType, setCameraType] = React.useState(Camera.Constants.Type.back);
-    const [flashMode, setFlashMode] = React.useState('off')
+    const [flashMode, setFlashMode] = React.useState('off');
+
 
 
     const __startCamera = async () => {
@@ -57,16 +59,24 @@ function formulaire() {
         console.log(photo.uri)
         setPreviewVisible(true)
         setCapturedImage(photo)
-        MediaLibrary.requestPermissionsAsync()
+        photoUrl= photo.uri
+        console.log(photoUrl)
         return photo.uri
     }
 
     const __savePhoto = async () => {
+        const { status } = await MediaLibrary.requestPermissionsAsync()
         console.log(MediaLibrary.getPermissionsAsync())
+        console.log("Je suis dans le save photo" + photoUrl)       
 
         const uri = __takePicture.toString()
 
-        const asset = await MediaLibrary.createAssetAsync(uri)
+        try {
+            const asset = await MediaLibrary.createAssetAsync(photoUrl)
+
+        } catch (e) {
+            console.log(e)
+        }
         console.log("enregistrement...")
     }
 
