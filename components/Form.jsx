@@ -1,13 +1,64 @@
 import React, { useState, useEffect } from 'react'
-import { StyleSheet, View, TextInput, Button, TouchableOpacity, Text, ScrollView, ImageBackground } from 'react-native'
+import { StyleSheet, View, TextInput, Button, TouchableOpacity, Text, ScrollView, ImageBackground, Dimensions } from 'react-native'
 import * as MediaLibrary from 'expo-media-library';
-import { Camera } from 'expo-camera'
-import { Picker } from '@react-native-picker/picker'
+import { Camera } from 'expo-camera';
+import { Picker } from '@react-native-picker/picker';
+import MapView, { Marker } from 'react-native-maps';
+import * as Location from 'expo-location';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import emailjs from 'emailjs-com';
 
 let camera = Camera
 let photoUrl = null;
 
 function formulaire() {
+
+    const [errorMsg, setErrorMsg] = React.useState(null);
+    const [getLocation, setLocation] = React.useState({ longitude: 2.0864263, latitude: 10.72625633978721, latitudeDelta: 0.00922, longitudeDelta: 0.00421 })
+    const [date, setDate] = useState(new Date(1598051730000));
+    const [mode, setMode] = useState('date');
+    const [show, setShow] = useState(false);
+
+    const onChange = (event, selectedDate) => {
+        const currentDate = selectedDate || date;
+        setShow(Platform.OS === 'ios');
+        setDate(currentDate);
+    };
+
+    const showMode = (currentMode) => {
+        setShow(true);
+        setMode(currentMode);
+    };
+
+    const showDatepicker = () => {
+        showMode('date');
+    };
+
+    const showTimepicker = () => {
+        showMode('time');
+    };
+
+
+    // Activate location on click
+    const __startLocalisation = async () => {
+
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status == "granted") {
+            try {
+                let location = await Location.getCurrentPositionAsync({})
+                setLocation({
+                    longitude: location.coords.longitude,
+                    latitude: location.coords.latitude,
+                    latitudeDelta: 1,
+                    longitudeDelta: 1,
+                });
+                console.log(location)
+            }
+            catch (e) {
+                console.log(e)
+            };
+        } else console.log("Fuck " + status)
+    }
 
     const [hasPermission, setHasPermission] = useState("");
     const [type, setType] = useState(Camera.Constants.Type.back);
@@ -19,7 +70,7 @@ function formulaire() {
     const [phoneNumber, SetPhoneNumber] = React.useState("");
     const [incident, SetDesciption] = React.useState("");
 
-    var data = [selectedLanguage, email, name, firstName, phoneNumber, incident];
+    var data = {problem: selectedLanguage, email: email, name: name, firstName: firstName, phone: phoneNumber, description: incident, geo: getLocation, date: date};
 
     if (hasPermission === null) {
         console.log('Permission granted');
@@ -59,7 +110,7 @@ function formulaire() {
         console.log(photo.uri)
         setPreviewVisible(true)
         setCapturedImage(photo)
-        photoUrl= photo.uri
+        photoUrl = photo.uri
         console.log(photoUrl)
         return photo.uri
     }
@@ -67,12 +118,13 @@ function formulaire() {
     const __savePhoto = async () => {
         const { status } = await MediaLibrary.requestPermissionsAsync()
         console.log(MediaLibrary.getPermissionsAsync())
-        console.log("Je suis dans le save photo" + photoUrl)       
+        console.log("Je suis dans le save photo" + photoUrl)
 
         const uri = __takePicture.toString()
 
         try {
-            const asset = await MediaLibrary.createAssetAsync(photoUrl)
+            const assert = await MediaLibrary.createAssetAsync(photoUrl)
+            MediaLibrary.createAlbumAsync("Expo", assert);
 
         } catch (e) {
             console.log(e)
@@ -105,14 +157,17 @@ function formulaire() {
     }
 
     const handleSubmit = () => {
+        // var data = ["Nature du problème" + selectedLanguage, "L'email est" + email, "Nom" + name, "Prénom: " + firstName, "Tel :" + phoneNumber, "Description" + incident, "Coordonnées" + getLocation, date];
+
         if (data != null) {
-            alert('Votre alerte à été envoyée : ' + data)
+            alert('Votre alerte à été envoyée : ')
+            emailjs.send('service_vmjj9po', 'template_y4pfp21', data,'user_t5vblhT1zt9eu8R2rrtac');
+            console.log(data);
         }
         else {
             alert('veuillez entrez des données')
         }
     };
-
 
     return (
         <ScrollView>
@@ -202,10 +257,45 @@ function formulaire() {
                 )
                 }
 
+                {/* Expo Location */}
+                <TouchableOpacity
+                    onPress={__startLocalisation}
+                    style={styles.btnCamera}>
+                    <Text style={styles.btnStyleText}>Donner ma position pour l'intervention</Text>
+                </TouchableOpacity>
+
+                {/* Expo Maps */}
+
+                {/* <View style={styles.container}>
+                    <MapView style={styles.map}>
+                        <Marker coordinate={getLocation} title="Alerte" pinColor='#000000'>
+                        </Marker>
+                    </MapView>
+                </View> */}
+
+                <View>
+                    <View>
+                        <Button onPress={showDatepicker} title="Choisir la date" />
+                    </View>
+                    <View>
+                        <Button onPress={showTimepicker} title="Choisir l'heure" />
+                    </View>
+                    {show && (
+                        <DateTimePicker
+                            testID="dateTimePicker"
+                            value={date}
+                            mode={mode}
+                            is24Hour={true}
+                            display="default"
+                            onChange={onChange}
+                        />
+                    )}
+                </View>
+
                 <View style={styles.btnBottomPage}>
                     <TouchableOpacity
                         title="submit"
-                        onPress={() => { submit() }}
+                        onPress={() => { handleSubmit() }}
                         style={styles.btnCamera}
                     >
                         <Text
@@ -215,6 +305,7 @@ function formulaire() {
                         </Text>
                     </TouchableOpacity>
                 </View>
+
             </View >
         </ScrollView>
     )
@@ -334,6 +425,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         height: 40,
     },
+
+    map: {
+        width: Dimensions.get('window').width-50,
+        height: Dimensions.get('window').height -50,
+        marginVertical: 10,
+    },
 });
 
 export default formulaire
+
