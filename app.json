@@ -23,15 +23,18 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.simplonCity"
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "build": {
         "babel": {
-           "include": ["react-router-native"]
-    }
-  }
+          "include": [
+            "react-router-native"
+          ]
+        }
+      }
     }
   }
 }

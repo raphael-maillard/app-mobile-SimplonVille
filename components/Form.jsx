@@ -1,23 +1,43 @@
-import React, { useState, useEffect } from 'react'
-import { StyleSheet, View, TextInput, Button, TouchableOpacity, Text, ScrollView, ImageBackground, Dimensions } from 'react-native'
-import * as MediaLibrary from 'expo-media-library';
-import { Camera } from 'expo-camera';
-import { Picker } from '@react-native-picker/picker';
-import MapView, { Marker } from 'react-native-maps';
-import * as Location from 'expo-location';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 import emailjs from 'emailjs-com';
+import { Camera } from 'expo-camera';
+import * as Location from 'expo-location';
+import * as MediaLibrary from 'expo-media-library';
+import React, { useState } from 'react';
+import { Dimensions, ImageBackground, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 
 let camera = Camera
 let photoUrl = null;
 
 function formulaire() {
 
-    const [errorMsg, setErrorMsg] = React.useState(null);
-    const [getLocation, setLocation] = React.useState({ longitude: 2.0864263, latitude: 10.72625633978721, latitudeDelta: 0.00922, longitudeDelta: 0.00421 })
+    const [getLocation, setLocation] = React.useState({ longitude: 0, latitude: 0, latitudeDelta: 0, longitudeDelta: 0 })
     const [date, setDate] = useState(new Date(1598051730000));
     const [mode, setMode] = useState('date');
     const [show, setShow] = useState(false);
+    const [selectedLanguage, setSelectedLanguage] = React.useState("");
+    const [email, setEmail] = React.useState("");
+    const [name, setName] = React.useState("");
+    const [firstName, setFirstName] = React.useState("");
+    const [phoneNumber, SetPhoneNumber] = React.useState("");
+    const [zip, setZip] = React.useState("");
+    const [adress, setAdress] = React.useState("");
+    const [incident, SetDesciption] = React.useState("");
+
+    var data = {
+        problem: selectedLanguage,
+        email: email,
+        name: name,
+        firstName: firstName,
+        phone: phoneNumber,
+        description: incident,
+        geo: getLocation,
+        date: date,
+        zip: zip,
+        adress: adress,
+    };
 
     const onChange = (event, selectedDate) => {
         const currentDate = selectedDate || date;
@@ -60,38 +80,11 @@ function formulaire() {
         } else console.log("Fuck " + status)
     }
 
-    const [hasPermission, setHasPermission] = useState("");
-    const [type, setType] = useState(Camera.Constants.Type.back);
-
-    const [selectedLanguage, setSelectedLanguage] = React.useState("");
-    const [email, setEmail] = React.useState("");
-    const [name, setName] = React.useState("");
-    const [firstName, setFirstName] = React.useState("");
-    const [phoneNumber, SetPhoneNumber] = React.useState("");
-    const [incident, SetDesciption] = React.useState("");
-
-    var data = {problem: selectedLanguage, email: email, name: name, firstName: firstName, phone: phoneNumber, description: incident, geo: getLocation, date: date};
-
-    if (hasPermission === null) {
-        console.log('Permission granted');
-        return <View />;
-    }
-    if (hasPermission === false) {
-        console.log('Permission refused');
-        return <Text>No access to camera</Text>;
-    }
-
-    const submit = () => {
-        if (selectedLanguage != null) { console.warn(data) } else window.alert("Choissez un incident ! ")
-    }
 
     // For the camera 
     const [startCamera, setStartCamera] = React.useState(false);
     const [previewVisible, setPreviewVisible] = React.useState(false);
     const [capturedImage, setCapturedImage] = React.useState(null);
-    const [cameraType, setCameraType] = React.useState(Camera.Constants.Type.back);
-    const [flashMode, setFlashMode] = React.useState('off');
-
 
 
     const __startCamera = async () => {
@@ -116,20 +109,17 @@ function formulaire() {
     }
 
     const __savePhoto = async () => {
-        const { status } = await MediaLibrary.requestPermissionsAsync()
-        console.log(MediaLibrary.getPermissionsAsync())
-        console.log("Je suis dans le save photo" + photoUrl)
-
-        const uri = __takePicture.toString()
-
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        console.log(MediaLibrary.getPermissionsAsync());
+        console.log("Je suis dans le save photo" + photoUrl);
         try {
             const assert = await MediaLibrary.createAssetAsync(photoUrl)
             MediaLibrary.createAlbumAsync("Expo", assert);
+            console.log("On enregistre")
 
         } catch (e) {
             console.log(e)
         }
-        console.log("enregistrement...")
     }
 
     const __retakePicture = () => {
@@ -138,34 +128,15 @@ function formulaire() {
         __startCamera()
     }
 
-    const __handleFlashMode = () => {
-        if (flashMode === 'on') {
-            setFlashMode('off')
-        } else if (flashMode === 'off') {
-            setFlashMode('on')
-        } else {
-            setFlashMode('auto')
-        }
-    }
-
-    const __switchCamera = () => {
-        if (cameraType === 'back') {
-            setCameraType('front')
-        } else {
-            setCameraType('back')
-        }
-    }
-
     const handleSubmit = () => {
-        // var data = ["Nature du problème" + selectedLanguage, "L'email est" + email, "Nom" + name, "Prénom: " + firstName, "Tel :" + phoneNumber, "Description" + incident, "Coordonnées" + getLocation, date];
 
-        if (data != null) {
-            alert('Votre alerte à été envoyée : ')
-            emailjs.send('service_vmjj9po', 'template_y4pfp21', data,'user_t5vblhT1zt9eu8R2rrtac');
+        if (data != null && selectedLanguage != null) {
+            alert('Votre alerte à été envoyée !')
+            emailjs.send('service_vmjj9po', 'template_y4pfp21', data, 'user_t5vblhT1zt9eu8R2rrtac');
             console.log(data);
         }
         else {
-            alert('veuillez entrez des données')
+            window.alert("Toutes les données ne sont pas rensiegnées")
         }
     };
 
@@ -178,9 +149,9 @@ function formulaire() {
                     style={styles.picker}
                 >
                     <Picker.Item label="Choissez un incident" />
-                    <Picker.Item label="Java" value="Java" />
-                    <Picker.Item label="JavaScript" value="JavaScript" />
-                    <Picker.Item label="React Native" value="React Native" />
+                    <Picker.Item label="Voirie" value="Voirie" />
+                    <Picker.Item label="Stationnement" value="stationnement" />
+                    <Picker.Item label="Travaux" value="travaux" />
                 </Picker>
 
                 <TextInput
@@ -188,6 +159,7 @@ function formulaire() {
                     onChangeText={setEmail} value={email}
                     style={styles.textInput}
                     keyboardType="email-address"
+                    rules={{ required: 'Email is required.' }}
                 />
 
                 <TextInput
@@ -200,6 +172,19 @@ function formulaire() {
                     placeholder="Prénom"
                     onChangeText={setFirstName} value={firstName}
                     style={styles.textInput}
+                />
+
+                <TextInput
+                    placeholder="Adresse"
+                    onChangeText={setAdress} value={adress}
+                    style={styles.textInput}
+                />
+
+                <TextInput
+                    placeholder="Code postal"
+                    onChangeText={setZip} value={zip}
+                    style={styles.textInput}
+                    keyboardType="phone-pad" r
                 />
 
                 <TextInput
@@ -217,12 +202,12 @@ function formulaire() {
                     onChangeText={SetDesciption} value={incident}
                     style={styles.textInput}
                 />
-
+                {/* Camera here */}
                 {startCamera ? (
                     <View
                         style={{
                             flex: 1,
-                            width: '100%'
+                            width: '100%',
                         }}
                     >
 
@@ -243,42 +228,51 @@ function formulaire() {
                             </Camera>
                         )}
                     </View>
+
                 ) : (
                     <TouchableOpacity
                         onPress={__startCamera}
-                        style={styles.btnCamera}
+                        style={styles.btncenter}
                     >
                         <Text
                             style={styles.btnStyleText}
                         >
-                            Take picture
+                            Prendre une photo de l'incident
                         </Text>
                     </TouchableOpacity>
                 )
                 }
 
                 {/* Expo Location */}
-                <TouchableOpacity
-                    onPress={__startLocalisation}
-                    style={styles.btnCamera}>
-                    <Text style={styles.btnStyleText}>Donner ma position pour l'intervention</Text>
-                </TouchableOpacity>
-
+                <View>
+                    <TouchableOpacity
+                        onPress={__startLocalisation}
+                        style={styles.btncenter}>
+                        <Text style={styles.btnStyleText}>Donner ma position pour l'intervention</Text>
+                    </TouchableOpacity>
+                </View>
                 {/* Expo Maps */}
 
-                {/* <View style={styles.container}>
+                <View style={styles.container}>
                     <MapView style={styles.map}>
                         <Marker coordinate={getLocation} title="Alerte" pinColor='#000000'>
                         </Marker>
                     </MapView>
-                </View> */}
+                </View>
 
-                <View>
+                <View style={{
+                    flexDirection: 'row',
+                }}>
                     <View>
-                        <Button onPress={showDatepicker} title="Choisir la date" />
+                        <TouchableOpacity style={styles.btn} onPress={showDatepicker} title="Choisir la date">
+                            <Text style={styles.btnStyleText}>Renseigner la date</Text>
+                        </TouchableOpacity>
+
                     </View>
                     <View>
-                        <Button onPress={showTimepicker} title="Choisir l'heure" />
+                        <TouchableOpacity style={styles.btn} onPress={showTimepicker} title="Choisir l'heure">
+                            <Text style={styles.btnStyleText}>Renseigner l'heure</Text>
+                        </TouchableOpacity>
                     </View>
                     {show && (
                         <DateTimePicker
@@ -296,18 +290,17 @@ function formulaire() {
                     <TouchableOpacity
                         title="submit"
                         onPress={() => { handleSubmit() }}
-                        style={styles.btnCamera}
                     >
                         <Text
-                            style={styles.btnStyleText}
+                            style={styles.btnStyleTextValide}
                         >
-                            Test
+                            Envoyer l'incident
                         </Text>
                     </TouchableOpacity>
                 </View>
 
             </View >
-        </ScrollView>
+        </ScrollView >
     )
 };
 
@@ -333,13 +326,13 @@ const CameraPreview = ({ photo, retakePicture, savePhoto }) => {
                         }}
                     >
 
-                        <TouchableOpacity onPress={retakePicture} style={styles.btnCamera}>
+                        <TouchableOpacity onPress={retakePicture} style={styles.btn}>
                             <Text style={styles.btnStyleText}>
                                 Refaire la photo
                             </Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity onPress={savePhoto} style={styles.btnCamera}>
+                        <TouchableOpacity onPress={savePhoto} style={styles.btn}>
                             <Text style={styles.btnStyleText}>
                                 Enregistrer la photo
                             </Text>
@@ -351,70 +344,83 @@ const CameraPreview = ({ photo, retakePicture, savePhoto }) => {
     )
 }
 
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'stretch',
         justifyContent: 'space-around',
+        backgroundColor: "#F0EDEE",
     },
 
     camera: {
         flex: 1,
     },
 
-    buttonContainer: {
-        flex: 1,
-        backgroundColor: 'transparent',
-        flexDirection: 'row',
-        margin: 20,
-    },
-
-    button: {
-        flex: 0.1,
-        alignSelf: 'flex-end',
-        alignItems: 'center',
-    },
     text: {
         fontSize: 18,
         color: 'black',
         height: 500,
+        marginLeft: 5,
     },
 
     textInput: {
         borderWidth: 2,
-        borderLeftColor: 'skyblue',
         margin: 20,
+        borderColor: '#C99C70',
     },
 
     picker: {
+        marginTop: 15,
         borderWidth: 2,
         borderLeftColor: 'skyblue',
         margin: 20,
     },
 
-    btnCamera: {
+    btn: {
         width: 130,
         borderRadius: 4,
-        backgroundColor: '#14274e',
-        flexDirection: 'row',
-        justifyContent: 'center',
+        backgroundColor: '#E1CA9F',
+        justifyContent: "space-between",
+        alignItems: 'center',
+        marginHorizontal: 5,
+        height: 40,
+        position: 'relative',
+        marginLeft: 43,
+        marginVertical: 10,
+    },
+
+    btncenter: {
+        width: 130,
+        borderRadius: 4,
+        backgroundColor: '#E1CA9F',
+        justifyContent: "space-between",
         alignItems: 'center',
         height: 40,
         position: 'relative',
+        marginTop: 10,
+        marginLeft: "30%",
     },
 
     btnBottomPage: {
-        display: 'flex',
-        flexDirection: "row"
-
+        borderRadius: 4,
+        backgroundColor: '#198754',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'relative',
+        marginTop: 20,
+        height: 50,
     },
 
     btnStyleText: {
-        color: '#fff',
+        color: '#575C60',
         fontWeight: 'bold',
-        textAlign: 'center'
+        textAlign: 'center',
+    },
 
+    btnStyleTextValide: {
+        color: 'black',
+        fontWeight: 'bold',
+        textAlign: 'center',
     },
 
     btnShoot: {
@@ -427,8 +433,8 @@ const styles = StyleSheet.create({
     },
 
     map: {
-        width: Dimensions.get('window').width-50,
-        height: Dimensions.get('window').height -50,
+        width: Dimensions.get('window').width,
+        height: Dimensions.get('window').height - 300,
         marginVertical: 10,
     },
 });
