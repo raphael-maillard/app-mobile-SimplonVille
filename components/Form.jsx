@@ -17,7 +17,7 @@ function formulaire() {
     const [date, setDate] = useState(new Date(1598051730000));
     const [mode, setMode] = useState('date');
     const [show, setShow] = useState(false);
-    const [selectedLanguage, setSelectedLanguage] = React.useState("");
+    const [problemType, setproblemType] = React.useState("");
     const [email, setEmail] = React.useState("");
     const [name, setName] = React.useState("");
     const [firstName, setFirstName] = React.useState("");
@@ -27,7 +27,7 @@ function formulaire() {
     const [incident, SetDesciption] = React.useState("");
 
     var data = {
-        problem: selectedLanguage,
+        problem: problemType,
         email: email,
         name: name,
         firstName: firstName,
@@ -37,6 +37,7 @@ function formulaire() {
         date: date,
         zip: zip,
         adress: adress,
+        photo: photoUrl,
     };
 
     const onChange = (event, selectedDate) => {
@@ -111,10 +112,10 @@ function formulaire() {
     const __savePhoto = async () => {
         const { status } = await MediaLibrary.requestPermissionsAsync();
         console.log(MediaLibrary.getPermissionsAsync());
-        console.log("Je suis dans le save photo" + photoUrl);
         try {
-            const assert = await MediaLibrary.createAssetAsync(photoUrl)
+            const assert = await MediaLibrary.createAssetAsync(photoUrl);
             MediaLibrary.createAlbumAsync("Expo", assert);
+            console.log(assert);
             console.log("On enregistre")
 
         } catch (e) {
@@ -130,9 +131,9 @@ function formulaire() {
 
     const handleSubmit = () => {
 
-        if (data != null && selectedLanguage != null) {
+        if (data != null && problemType != null) {
             alert('Votre alerte à été envoyée !')
-            emailjs.send('service_vmjj9po', 'template_y4pfp21', data, 'user_t5vblhT1zt9eu8R2rrtac');
+//             emailjs.send('service_vmjj9po', 'template_y4pfp21', data, 'user_t5vblhT1zt9eu8R2rrtac');
             console.log(data);
         }
         else {
@@ -144,8 +145,8 @@ function formulaire() {
         <ScrollView>
             <View style={styles.container}>
                 <Picker
-                    onValueChange={setSelectedLanguage}
-                    value={selectedLanguage}
+                    onValueChange={setproblemType}
+                    value={problemType}
                     style={styles.picker}
                 >
                     <Picker.Item label="Choissez un incident" />
