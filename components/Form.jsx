@@ -7,24 +7,27 @@ import * as MediaLibrary from 'expo-media-library';
 import React, { useState } from 'react';
 import { Dimensions, ImageBackground, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import base64 from 'react-native-base64';
 
-let camera = Camera
+let camera = Camera;
 let photoUrl = null;
+let ObjectPhoto = null;
 
 function formulaire() {
 
-    const [getLocation, setLocation] = React.useState({ longitude: 0, latitude: 0, latitudeDelta: 0, longitudeDelta: 0 })
+    const [getLocation, setLocation] = useState({ longitude: 0, latitude: 0, latitudeDelta: 0, longitudeDelta: 0 })
     const [date, setDate] = useState(new Date(1598051730000));
     const [mode, setMode] = useState('date');
     const [show, setShow] = useState(false);
-    const [problemType, setproblemType] = React.useState("");
-    const [email, setEmail] = React.useState("");
-    const [name, setName] = React.useState("");
-    const [firstName, setFirstName] = React.useState("");
-    const [phoneNumber, SetPhoneNumber] = React.useState("");
-    const [zip, setZip] = React.useState("");
-    const [adress, setAdress] = React.useState("");
-    const [incident, SetDesciption] = React.useState("");
+    const [problemType, setproblemType] = useState("");
+    const [email, setEmail] = useState("");
+    const [name, setName] = useState("");
+    const [getImage, setImage] = useState("");
+    const [firstName, setFirstName] = useState("");
+    const [phoneNumber, SetPhoneNumber] = useState("");
+    const [zip, setZip] = useState("");
+    const [adress, setAdress] = useState("");
+    const [incident, SetDesciption] = useState("");
 
     var data = {
         problem: problemType,
@@ -37,7 +40,7 @@ function formulaire() {
         date: date,
         zip: zip,
         adress: adress,
-        photo: photoUrl,
+        photo: getImage,
     };
 
     const onChange = (event, selectedDate) => {
@@ -100,14 +103,45 @@ function formulaire() {
     };
 
     const __takePicture = async () => {
-        const photo = await camera.takePictureAsync()
-        console.log(photo.uri)
-        setPreviewVisible(true)
-        setCapturedImage(photo)
-        photoUrl = photo.uri
-        console.log(photoUrl)
-        return photo.uri
-    }
+        const options = { quality: 1, base64: true };
+        const photo = await camera.takePictureAsync(options);
+        console.log(photo.uri);
+        setPreviewVisible(true);
+        setCapturedImage(photo);
+        photoUrl = photo.uri;
+
+        // to send the picture to cloudnary
+        const source = photo.base64;
+
+        let base64Img = `data:image/jpg;base64,${source}`;
+        let apiUrl = 'https://api.cloudinary.com/v1_1/db27hucmm/image/upload';
+        let picture = {
+            file: base64Img,
+            upload_preset: 'myUploadPreset',
+            api_key: '785546996543439',
+            timestamp: new Date(),
+        };
+
+
+        fetch(apiUrl, {
+            body: JSON.stringify(picture),
+            headers: {
+                'content-type': 'application/json'
+            },
+            method: 'POST'
+        })
+        .then(async response => {
+            let data = await response.json();
+            if (data.secure_url) {
+                alert('Upload successful');
+                console.log(data);
+                setImage(data.url);
+            }
+        })
+            .catch(err => {
+                alert('Cannot upload');
+            });
+    };
 
     const __savePhoto = async () => {
         const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -115,12 +149,12 @@ function formulaire() {
         try {
             const assert = await MediaLibrary.createAssetAsync(photoUrl);
             MediaLibrary.createAlbumAsync("Expo", assert);
-            console.log(assert);
+            ObjectPhoto = assert;
             console.log("On enregistre")
-
         } catch (e) {
             console.log(e)
         }
+
     }
 
     const __retakePicture = () => {
@@ -133,11 +167,11 @@ function formulaire() {
 
         if (data != null && problemType != null) {
             alert('Votre alerte à été envoyée !')
-//             emailjs.send('service_vmjj9po', 'template_y4pfp21', data, 'user_t5vblhT1zt9eu8R2rrtac');
+            emailjs.send('service_vmjj9po', 'template_y4pfp21', data, 'user_t5vblhT1zt9eu8R2rrtac');
             console.log(data);
         }
         else {
-            window.alert("Toutes les données ne sont pas rensiegnées")
+            window.alert("Toutes les données ne sont pas renseignées")
         }
     };
 
@@ -256,8 +290,7 @@ function formulaire() {
 
                 <View style={styles.container}>
                     <MapView style={styles.map}>
-                        <Marker coordinate={getLocation} title="Alerte" pinColor='#000000'>
-                        </Marker>
+                        <Marker coordinate={getLocation} title="Alerte" pinColor='#000000' />
                     </MapView>
                 </View>
 
@@ -300,13 +333,12 @@ function formulaire() {
                     </TouchableOpacity>
                 </View>
 
-            </View >
-        </ScrollView >
+            </View>
+        </ScrollView>
     )
 };
 
 const CameraPreview = ({ photo, retakePicture, savePhoto }) => {
-    console.log('Sauvegarde en cours', photo)
     return (
         <View style={styles.camera}>
             <ImageBackground

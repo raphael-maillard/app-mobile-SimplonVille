@@ -27,6 +27,7 @@
     "react-dom": "16.13.1",
     "react-final-form": "^6.5.3",
     "react-native": "https://github.com/expo/react-native/archive/sdk-42.0.0.tar.gz",
+    "react-native-base64": "^0.2.1",
     "react-native-form-component": "^0.1.17",
     "react-native-gesture-handler": "~1.10.2",
     "react-native-maps": "0.28.0",
