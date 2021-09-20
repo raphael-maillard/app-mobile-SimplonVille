@@ -7,7 +7,6 @@ import * as MediaLibrary from 'expo-media-library';
 import React, { useState } from 'react';
 import { Dimensions, ImageBackground, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import base64 from 'react-native-base64';
 
 let camera = Camera;
 let photoUrl = null;
@@ -103,15 +102,23 @@ function formulaire() {
     };
 
     const __takePicture = async () => {
-        const options = { quality: 1, base64: true };
+        const options = { quality: 0.5, base64: true };
         const photo = await camera.takePictureAsync(options);
         console.log(photo.uri);
         setPreviewVisible(true);
         setCapturedImage(photo);
         photoUrl = photo.uri;
+        ObjectPhoto = photo;
+
+    };
+
+    const __savePhoto = async () => {
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        console.log(MediaLibrary.getPermissionsAsync());
+
 
         // to send the picture to cloudnary
-        const source = photo.base64;
+        const source = ObjectPhoto.base64;
 
         let base64Img = `data:image/jpg;base64,${source}`;
         let apiUrl = 'https://api.cloudinary.com/v1_1/db27hucmm/image/upload';
@@ -130,22 +137,19 @@ function formulaire() {
             },
             method: 'POST'
         })
-        .then(async response => {
-            let data = await response.json();
-            if (data.secure_url) {
-                alert('Upload successful');
-                console.log(data);
-                setImage(data.url);
-            }
-        })
+            .then(async response => {
+                let data = await response.json();
+                if (data.secure_url) {
+                    alert('Upload successful');
+                    console.log(data);
+                    setImage(data.url);
+                }
+            })
             .catch(err => {
                 alert('Cannot upload');
             });
-    };
 
-    const __savePhoto = async () => {
-        const { status } = await MediaLibrary.requestPermissionsAsync();
-        console.log(MediaLibrary.getPermissionsAsync());
+        // Save in the mobile
         try {
             const assert = await MediaLibrary.createAssetAsync(photoUrl);
             MediaLibrary.createAlbumAsync("Expo", assert);
@@ -163,8 +167,8 @@ function formulaire() {
         __startCamera()
     }
 
+    // Send the form
     const handleSubmit = () => {
-
         if (data != null && problemType != null) {
             alert('Votre alerte à été envoyée !')
             emailjs.send('service_vmjj9po', 'template_y4pfp21', data, 'user_t5vblhT1zt9eu8R2rrtac');
