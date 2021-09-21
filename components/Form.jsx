@@ -261,7 +261,7 @@ function formulaire() {
                             >
                                 <View>
                                     <TouchableOpacity onPress={__takePicture} style={styles.btnShoot}>
-                                        <Text style={styles.btnStyleText}>Shoot</Text>
+                                            <Text style={styles.btnStyleTextShoot}>Shoot</Text>
                                     </TouchableOpacity>
                                 </View>
                             </Camera>
@@ -450,6 +450,12 @@ const styles = StyleSheet.create({
 
     btnStyleText: {
         color: '#575C60',
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+
+    btnStyleTextShoot: {
+        color: '#fff',
         fontWeight: 'bold',
         textAlign: 'center',
     },
