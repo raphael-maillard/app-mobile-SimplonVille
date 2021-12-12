@@ -36,7 +36,8 @@ function formulaire() {
         phoneNumber: phoneNumber,
         description: incident,
         location: 'https://www.google.fr/maps/place/'+getLocation.latitude+ ',' + getLocation.longitude,
-        date: date.getFullYear() + '-' +( date.getMonth()+1) + '-' + date.getDay(),
+        date: date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate(),
+        fullDate : date,
         time: date.getHours() + ':' + date.getMinutes()+ ':' + date.getSeconds(),
         userZipcode: zip,
         userAddress: adress,
@@ -190,7 +191,7 @@ function formulaire() {
         if (data != null && problemType != null) {
             try{
             alert('Votre alerte à été envoyée !')
-            emailjs.send('service_vmjj9po', 'template_y4pfp21', data, 'user_t5vblhT1zt9eu8R2rrtac');
+            //emailjs.send('service_vmjj9po', 'template_y4pfp21', data, 'user_t5vblhT1zt9eu8R2rrtac');
             const results = register(data);
             console.log(data);
             }
