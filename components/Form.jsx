@@ -15,7 +15,7 @@ let ObjectPhoto = null;
 function formulaire() {
 
     const [getLocation, setLocation] = useState({ longitude: 0, latitude: 0, latitudeDelta: 0, longitudeDelta: 0 })
-    const [date, setDate] = useState(new Date(1598051730000));
+    const [date, setDate] = useState(new Date());
     const [mode, setMode] = useState('date');
     const [show, setShow] = useState(false);
     const [problemType, setproblemType] = useState("");
@@ -29,17 +29,18 @@ function formulaire() {
     const [incident, SetDesciption] = useState("");
 
     var data = {
-        problem: problemType,
+        cause: problemType,
         email: email,
         name: name,
-        firstName: firstName,
-        phone: phoneNumber,
+        firstname: firstName,
+        phoneNumber: phoneNumber,
         description: incident,
-        geo: getLocation,
-        date: date,
-        zip: zip,
-        adress: adress,
-        photo: getImage,
+        location: 'https://www.google.fr/maps/place/'+getLocation.latitude+ ',' + getLocation.longitude,
+        date: date.getFullYear() + '-' +( date.getMonth()+1) + '-' + date.getDay(),
+        time: date.getHours() + ':' + date.getMinutes()+ ':' + date.getSeconds(),
+        userZipcode: zip,
+        userAddress: adress,
+        picture: getImage,
     };
 
     const onChange = (event, selectedDate) => {
@@ -167,14 +168,42 @@ function formulaire() {
         __startCamera()
     }
 
+    const register = (data) => {
+        try {
+            fetch('http://77.141.101.84:8080/alert/', {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            console.log("Try good");
+        } catch (error) {
+            console.error(error);
+        }
+    
+    }
+
     // Send the form
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (data != null && problemType != null) {
+            try{
             alert('Votre alerte à été envoyée !')
             emailjs.send('service_vmjj9po', 'template_y4pfp21', data, 'user_t5vblhT1zt9eu8R2rrtac');
+            const results = register(data);
             console.log(data);
+            }
+            catch(error){
+                console.log(error);
+                alert(
+                    (error && error.message) ||
+                    `Oups! Quelque chose s'est mal passé. Veuillez réessayer!`,
+                );
+            }
         }
         else {
+        
             window.alert("Toutes les données ne sont pas renseignées")
         }
     };
