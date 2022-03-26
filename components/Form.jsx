@@ -1,11 +1,10 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
-import emailjs from 'emailjs-com';
 import { Camera } from 'expo-camera';
 import * as Location from 'expo-location';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useState } from 'react';
-import { Dimensions, ImageBackground, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Dimensions, ImageBackground, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
 let camera = Camera;
@@ -13,11 +12,18 @@ let photoUrl = null;
 let ObjectPhoto = null;
 
 function formulaire() {
+    const franceRegion = {
+        longitude: 2.287592,
+        latitude: 46.862725,
+        latitudeDelta: 10,
+        longitudeDelta: 10
+    };
 
     const [getLocation, setLocation] = useState({ longitude: 0, latitude: 0, latitudeDelta: 0, longitudeDelta: 0 })
     const [date, setDate] = useState(new Date());
-    const [mode, setMode] = useState('date');
+    const [mode, setMode] = useState();
     const [show, setShow] = useState(false);
+    const [showMap, setShowMap] = useState(false);
     const [problemType, setproblemType] = useState("");
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
@@ -35,10 +41,10 @@ function formulaire() {
         firstname: firstName,
         phoneNumber: phoneNumber,
         description: incident,
-        location: 'https://www.google.fr/maps/place/'+getLocation.latitude+ ',' + getLocation.longitude,
-        date: date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate(),
-        fullDate : date,
-        time: date.getHours() + ':' + date.getMinutes()+ ':' + date.getSeconds(),
+        location: 'https://www.google.fr/maps/place/' + getLocation.latitude + ',' + getLocation.longitude,
+        date: date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate(),
+        fullDate: date,
+        time: date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds(),
         userZipcode: zip,
         userAddress: adress,
         picture: getImage,
@@ -111,13 +117,11 @@ function formulaire() {
         setCapturedImage(photo);
         photoUrl = photo.uri;
         ObjectPhoto = photo;
-
     };
 
     const __savePhoto = async () => {
         const { status } = await MediaLibrary.requestPermissionsAsync();
         console.log(MediaLibrary.getPermissionsAsync());
-
 
         // to send the picture to cloudnary
         const source = ObjectPhoto.base64;
@@ -128,10 +132,10 @@ function formulaire() {
             file: base64Img,
             upload_preset: 'myUploadPreset',
             api_key: '785546996543439',
-            timestamp: new Date(),
+            timestamp: date,
         };
 
-
+        // Send to cloudinary
         fetch(apiUrl, {
             body: JSON.stringify(picture),
             headers: {
@@ -142,13 +146,13 @@ function formulaire() {
             .then(async response => {
                 let data = await response.json();
                 if (data.secure_url) {
-                    alert('Upload successful');
+                    alert('Picture Upload with success');
                     console.log(data);
                     setImage(data.url);
                 }
             })
             .catch(err => {
-                alert('Cannot upload');
+                alert('Upload not success');
             });
 
         // Save in the mobile
@@ -156,17 +160,21 @@ function formulaire() {
             const assert = await MediaLibrary.createAssetAsync(photoUrl);
             MediaLibrary.createAlbumAsync("Expo", assert);
             ObjectPhoto = assert;
-            console.log("On enregistre")
+            console.log("On enregistre");
+            setStartCamera(false);
         } catch (e) {
             console.log(e)
         }
-
     }
 
     const __retakePicture = () => {
         setCapturedImage(null)
         setPreviewVisible(false)
         __startCamera()
+    }
+
+    const __closeCamera = () => {
+        setStartCamera(false);
     }
 
     const register = (data) => {
@@ -183,94 +191,118 @@ function formulaire() {
         } catch (error) {
             console.error(error);
         }
-    
+
     }
+
+    // const [incident, SetDesciption] = useState("");
 
     // Send the form
     const handleSubmit = async () => {
+        if (!email.trim()) {
+            return (Alert.alert('Email missing', 'Please enter email'))
+        }
+        if (!problemType.trim() && problemType != "Choissez un incident") {
+            return (Alert.alert("Type of problem", "You've forget to choice a problem"))
+        }
+        if (!name.trim()) {
+            return (Alert.alert("Name missing", "Please enter your name"))
+        }
+        if (!firstName.trim()) {
+            return (Alert.alert("Firstname missing", "Please enter your firstname"))
+        }
+        if (!adress.trim() || !zip.trim()) {
+            return (Alert.alert("Adress/Zipcode missing", 'Please enter adress or zipcode'))
+        }
+
+        if (!incident.trim()) {
+            return (Alert.alert("Incident","Short descript of the incident"))
+        }
+
         if (data != null && problemType != null) {
-            try{
-            alert('Votre alerte à été envoyée !')
-            //emailjs.send('service_vmjj9po', 'template_y4pfp21', data, 'user_t5vblhT1zt9eu8R2rrtac');
-            const results = register(data);
-            console.log(data);
+            try {
+                Alert.alert("Success",'Votre alerte à été envoyée !')
+                //emailjs.send('service_vmjj9po', 'template_y4pfp21', data, 'user_t5vblhT1zt9eu8R2rrtac');
+                const results = register(data);
+                console.log(data);
             }
-            catch(error){
+            catch (error) {
                 console.log(error);
-                alert(
+                Alert.alert(
                     (error && error.message) ||
-                    `Oups! Quelque chose s'est mal passé. Veuillez réessayer!`,
+                    `Oups! Something was worng, try again!`,
                 );
             }
-        }
-        else {
-        
-            window.alert("Toutes les données ne sont pas renseignées")
         }
     };
 
     return (
         <ScrollView>
             <View style={styles.container}>
+
                 <Picker
                     onValueChange={setproblemType}
                     value={problemType}
                     style={styles.picker}
                 >
-                    <Picker.Item label="Choissez un incident" />
+                    <Picker.Item label="Choissez un incident ..." />
                     <Picker.Item label="Voirie" value="Voirie" />
                     <Picker.Item label="Stationnement" value="stationnement" />
                     <Picker.Item label="Travaux" value="travaux" />
                 </Picker>
 
-                <TextInput
-                    placeholder="Email"
-                    onChangeText={setEmail} value={email}
-                    style={styles.textInput}
-                    keyboardType="email-address"
-                    rules={{ required: 'Email is required.' }}
-                />
+                <View>
+                    <View>
+                        <TextInput
+                            placeholder="Email"
+                            onChangeText={setEmail} value={email}
+                            style={styles.textInput}
+                            keyboardType="email-address"
+                            autoComplete='email'
+                            rules={{ required: 'Email is required.' }}
+                        />
+                    </View>
 
-                <TextInput
-                    placeholder="Nom"
-                    onChangeText={setName} value={name}
-                    style={styles.textInput}
-                />
+                    <TextInput
+                        placeholder="Nom"
+                        onChangeText={setName} value={name}
+                        style={styles.textInput}
+                    />
 
-                <TextInput
-                    placeholder="Prénom"
-                    onChangeText={setFirstName} value={firstName}
-                    style={styles.textInput}
-                />
+                    <TextInput
+                        placeholder="Prénom"
+                        onChangeText={setFirstName} value={firstName}
+                        style={styles.textInput}
+                    />
 
-                <TextInput
-                    placeholder="Adresse"
-                    onChangeText={setAdress} value={adress}
-                    style={styles.textInput}
-                />
+                    <TextInput
+                        placeholder="Adresse"
+                        onChangeText={setAdress} value={adress}
+                        style={styles.textInput}
+                    />
 
-                <TextInput
-                    placeholder="Code postal"
-                    onChangeText={setZip} value={zip}
-                    style={styles.textInput}
-                    keyboardType="phone-pad" r
-                />
+                    <TextInput
+                        placeholder="Code postal"
+                        onChangeText={setZip} value={zip}
+                        style={styles.textInput}
+                        keyboardType="phone-pad" r
+                    />
 
-                <TextInput
-                    placeholder="Numéro de téléphone"
-                    onChangeText={SetPhoneNumber} value={phoneNumber}
-                    style={styles.textInput}
-                    keyboardType="phone-pad" r
-                />
+                    <TextInput
+                        placeholder="Numéro de téléphone"
+                        onChangeText={SetPhoneNumber} value={phoneNumber}
+                        style={styles.textInput}
+                        keyboardType="phone-pad" r
+                    />
 
-                <TextInput
-                    placeholder="Description de l'incident"
-                    multiline={true}
-                    numberOfLines={4}
-                    maxLenght={40}
-                    onChangeText={SetDesciption} value={incident}
-                    style={styles.textInput}
-                />
+                    <TextInput
+                        placeholder="Description de l'incident"
+                        multiline={true}
+                        numberOfLines={4}
+                        maxLenght={40}
+                        onChangeText={SetDesciption} value={incident}
+                        style={styles.textInput}
+                    />
+                </View>
                 {/* Camera here */}
                 {startCamera ? (
                     <View
@@ -289,9 +321,16 @@ function formulaire() {
                                     camera = r
                                 }}
                             >
+
+                                <View>
+                                    <TouchableOpacity onPress={__closeCamera} style={styles.btnClosedCamera}>
+                                        <Text style={styles.btnStyleTextClosedCamera}>Fermer la camera</Text>
+                                    </TouchableOpacity>
+                                </View>
+
                                 <View>
                                     <TouchableOpacity onPress={__takePicture} style={styles.btnShoot}>
-                                            <Text style={styles.btnStyleTextShoot}>Shoot</Text>
+                                        <Text style={styles.btnStyleTextShoot}>Capturer</Text>
                                     </TouchableOpacity>
                                 </View>
                             </Camera>
@@ -320,11 +359,17 @@ function formulaire() {
                         <Text style={styles.btnStyleText}>Donner ma position pour l'intervention</Text>
                     </TouchableOpacity>
                 </View>
-                {/* Expo Maps */}
 
+                {/* Expo Maps */}
                 <View style={styles.container}>
-                    <MapView style={styles.map}>
-                        <Marker coordinate={getLocation} title="Alerte" pinColor='#000000' />
+                    <MapView
+                        style={styles.map}
+                        pitchEnabled={false}
+                        rotateEnabled={false}
+                        initialRegion={franceRegion}
+
+                    >
+                        <Marker coordinate={getLocation} title="Alerte" pinColor='#000000' animateMarkerToCoordiante={getLocation} />
                     </MapView>
                 </View>
 
@@ -346,7 +391,7 @@ function formulaire() {
                         <DateTimePicker
                             testID="dateTimePicker"
                             value={date}
-                            mode={mode}
+                            mode={date}
                             is24Hour={true}
                             display="default"
                             onChange={onChange}
@@ -368,7 +413,7 @@ function formulaire() {
                 </View>
 
             </View>
-        </ScrollView>
+        </ScrollView >
     )
 };
 
@@ -412,11 +457,12 @@ const CameraPreview = ({ photo, retakePicture, savePhoto }) => {
 }
 
 const styles = StyleSheet.create({
+
     container: {
         flex: 1,
         alignItems: 'stretch',
         justifyContent: 'space-around',
-        backgroundColor: "#F0EDEE",
+        backgroundColor: "#0d1b2a",
     },
 
     camera: {
@@ -425,29 +471,36 @@ const styles = StyleSheet.create({
 
     text: {
         fontSize: 18,
-        color: 'black',
+        color: 'white',
         height: 500,
-        marginLeft: 5,
+        marginLeft: 15,
     },
 
     textInput: {
-        borderWidth: 2,
         margin: 20,
-        borderColor: '#C99C70',
+        borderRadius: 10,
+        backgroundColor: "#778da9",
+        color: '#e0e1dd',
+        paddingLeft: 10,
+        padding: 5
     },
 
     picker: {
         marginTop: 15,
         borderWidth: 2,
-        borderLeftColor: 'skyblue',
+        borderLeftColor: 'white',
         margin: 20,
+        color: 'white',
+        fontSize: 16,
+        borderRadius: 6,
     },
 
     btn: {
         width: 130,
-        borderRadius: 4,
-        backgroundColor: '#E1CA9F',
+        borderRadius: 10,
         justifyContent: "space-between",
+        backgroundColor: '#415A77',
+        justifyContent: 'center',
         alignItems: 'center',
         marginHorizontal: 5,
         height: 40,
@@ -459,7 +512,7 @@ const styles = StyleSheet.create({
     btncenter: {
         width: 130,
         borderRadius: 4,
-        backgroundColor: '#E1CA9F',
+        backgroundColor: '#415A77',
         justifyContent: "space-between",
         alignItems: 'center',
         height: 40,
@@ -468,32 +521,17 @@ const styles = StyleSheet.create({
         marginLeft: "30%",
     },
 
-    btnBottomPage: {
-        borderRadius: 4,
-        backgroundColor: '#198754',
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'relative',
-        marginTop: 20,
-        height: 50,
-    },
-
     btnStyleText: {
-        color: '#575C60',
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-
-    btnStyleTextShoot: {
         color: '#fff',
         fontWeight: 'bold',
         textAlign: 'center',
     },
 
-    btnStyleTextValide: {
-        color: 'black',
+    btnStyleTextShoot: {
+        color: '#E0E1DD',
         fontWeight: 'bold',
         textAlign: 'center',
+        fontSize: 32,
     },
 
     btnShoot: {
@@ -502,15 +540,50 @@ const styles = StyleSheet.create({
         backgroundColor: "transparent",
         justifyContent: 'center',
         alignItems: 'center',
-        height: 40,
+        height: 45,
+        position: 'relative',
+        marginTop: 250,
+        marginLeft: "30%",
+    },
+
+    btnClosedCamera: {
+        width: 120,
+        marginTop: 5,
+        borderRadius: 4,
+        backgroundColor: "transparent",
+        height: 25,
+        alignSelf: 'flex-end'
+    },
+
+    btnStyleTextClosedCamera: {
+        color: '#E0E1DD',
+        textAlign: 'center',
+        fontSize: 16,
+    },
+
+    btnBottomPage: {
+        borderRadius: 4,
+        backgroundColor: '#72B01D',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'relative',
+        marginTop: 20,
+        height: 50,
+    },
+
+    btnStyleTextValide: {
+        color: 'black',
+        fontWeight: 'bold',
+        fontSize: 28,
+        textAlign: 'center',
     },
 
     map: {
         width: Dimensions.get('window').width,
-        height: Dimensions.get('window').height - 300,
+        height: Dimensions.get('window').height - 400,
         marginVertical: 10,
     },
 });
-
 export default formulaire
 
+// https://coolors.co/palette/0d1b2a-1b263b-415a77-778da9-e0e1dd
