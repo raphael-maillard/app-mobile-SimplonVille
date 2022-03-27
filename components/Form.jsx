@@ -6,6 +6,7 @@ import * as MediaLibrary from 'expo-media-library';
 import React, { useState } from 'react';
 import { Dimensions, ImageBackground, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import { borderColor } from 'react-native/Libraries/Components/View/ReactNativeStyleAttributes';
 
 let camera = Camera;
 let photoUrl = null;
@@ -215,12 +216,12 @@ function formulaire() {
         }
 
         if (!incident.trim()) {
-            return (Alert.alert("Incident","Short descript of the incident"))
+            return (Alert.alert("Incident", "Short descript of the incident"))
         }
 
         if (data != null && problemType != null) {
             try {
-                Alert.alert("Success",'Votre alerte à été envoyée !')
+                Alert.alert("Success", 'Votre alerte à été envoyée !')
                 //emailjs.send('service_vmjj9po', 'template_y4pfp21', data, 'user_t5vblhT1zt9eu8R2rrtac');
                 const results = register(data);
                 console.log(data);
@@ -249,60 +250,55 @@ function formulaire() {
                     <Picker.Item label="Stationnement" value="stationnement" />
                     <Picker.Item label="Travaux" value="travaux" />
                 </Picker>
+                <TextInput
+                    placeholder="Email"
+                    onChangeText={setEmail} value={email}
+                    style={styles.textInput}
+                    keyboardType="email-address"
+                    autoComplete='email'
+                    rules={{ required: 'Email is required.' }}
+                />
 
-                <View>
-                    <View>
-                        <TextInput
-                            placeholder="Email"
-                            onChangeText={setEmail} value={email}
-                            style={styles.textInput}
-                            keyboardType="email-address"
-                            autoComplete='email'
-                            rules={{ required: 'Email is required.' }}
-                        />
-                    </View>
+                <TextInput
+                    placeholder="Nom"
+                    onChangeText={setName} value={name}
+                    style={styles.textInput}
+                />
 
-                    <TextInput
-                        placeholder="Nom"
-                        onChangeText={setName} value={name}
-                        style={styles.textInput}
-                    />
+                <TextInput
+                    placeholder="Prénom"
+                    onChangeText={setFirstName} value={firstName}
+                    style={styles.textInput}
+                />
 
-                    <TextInput
-                        placeholder="Prénom"
-                        onChangeText={setFirstName} value={firstName}
-                        style={styles.textInput}
-                    />
+                <TextInput
+                    placeholder="Adresse"
+                    onChangeText={setAdress} value={adress}
+                    style={styles.textInput}
+                />
 
-                    <TextInput
-                        placeholder="Adresse"
-                        onChangeText={setAdress} value={adress}
-                        style={styles.textInput}
-                    />
+                <TextInput
+                    placeholder="Code postal"
+                    onChangeText={setZip} value={zip}
+                    style={styles.textInput}
+                    keyboardType="phone-pad" r
+                />
 
-                    <TextInput
-                        placeholder="Code postal"
-                        onChangeText={setZip} value={zip}
-                        style={styles.textInput}
-                        keyboardType="phone-pad" r
-                    />
+                <TextInput
+                    placeholder="Numéro de téléphone"
+                    onChangeText={SetPhoneNumber} value={phoneNumber}
+                    style={styles.textInput}
+                    keyboardType="phone-pad" r
+                />
 
-                    <TextInput
-                        placeholder="Numéro de téléphone"
-                        onChangeText={SetPhoneNumber} value={phoneNumber}
-                        style={styles.textInput}
-                        keyboardType="phone-pad" r
-                    />
-
-                    <TextInput
-                        placeholder="Description de l'incident"
-                        multiline={true}
-                        numberOfLines={4}
-                        maxLenght={40}
-                        onChangeText={SetDesciption} value={incident}
-                        style={styles.textInput}
-                    />
-                </View>
+                <TextInput
+                    placeholder="Description de l'incident"
+                    multiline={true}
+                    numberOfLines={4}
+                    maxLenght={40}
+                    onChangeText={SetDesciption} value={incident}
+                    style={styles.textInput}
+                />
                 {/* Camera here */}
                 {startCamera ? (
                     <View
@@ -338,55 +334,46 @@ function formulaire() {
                     </View>
 
                 ) : (
-                    <TouchableOpacity
-                        onPress={__startCamera}
-                        style={styles.btncenter}
-                    >
-                        <Text
-                            style={styles.btnStyleText}
+                    <View style={styles.outBtnCenter}>
+                        <TouchableOpacity
+                            onPress={__startCamera}
+                            style={styles.InbtnCenter}
                         >
-                            Prendre une photo de l'incident
-                        </Text>
-                    </TouchableOpacity>
+                            <Text
+                                style={styles.btnStyleText}
+                            >
+                                Prendre une photo de l'incident
+                            </Text>
+                        </TouchableOpacity>
+                        {/* Expo Location */}
+                        <TouchableOpacity
+                            onPress={__startLocalisation}
+                            style={styles.InbtnCenter}>
+                            <Text style={styles.btnStyleText}>Donner ma position pour l'intervention</Text>
+                        </TouchableOpacity>
+                    </View>
                 )
                 }
 
-                {/* Expo Location */}
-                <View>
-                    <TouchableOpacity
-                        onPress={__startLocalisation}
-                        style={styles.btncenter}>
-                        <Text style={styles.btnStyleText}>Donner ma position pour l'intervention</Text>
-                    </TouchableOpacity>
-                </View>
-
                 {/* Expo Maps */}
-                <View style={styles.container}>
-                    <MapView
-                        style={styles.map}
-                        pitchEnabled={false}
-                        rotateEnabled={false}
-                        initialRegion={franceRegion}
+                <MapView
+                    style={styles.map}
+                    pitchEnabled={false}
+                    rotateEnabled={false}
+                    initialRegion={franceRegion}
 
-                    >
-                        <Marker coordinate={getLocation} title="Alerte" pinColor='#000000' animateMarkerToCoordiante={getLocation} />
-                    </MapView>
-                </View>
+                >
+                    <Marker coordinate={getLocation} title="Alerte" pinColor='#000000' animateMarkerToCoordiante={getLocation} />
+                </MapView>
 
-                <View style={{
-                    flexDirection: 'row',
-                }}>
-                    <View>
-                        <TouchableOpacity style={styles.btn} onPress={showDatepicker} title="Choisir la date">
-                            <Text style={styles.btnStyleText}>Renseigner la date</Text>
-                        </TouchableOpacity>
+                <View style={styles.btnCenterBottom}>
+                    <TouchableOpacity style={styles.btn} onPress={showDatepicker} title="Choisir la date">
+                        <Text style={styles.btnStyleText}>Renseigner la date</Text>
+                    </TouchableOpacity>
 
-                    </View>
-                    <View>
-                        <TouchableOpacity style={styles.btn} onPress={showTimepicker} title="Choisir l'heure">
-                            <Text style={styles.btnStyleText}>Renseigner l'heure</Text>
-                        </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity style={styles.btn} onPress={showTimepicker} title="Choisir l'heure">
+                        <Text style={styles.btnStyleText}>Renseigner l'heure</Text>
+                    </TouchableOpacity>
                     {show && (
                         <DateTimePicker
                             testID="dateTimePicker"
@@ -399,17 +386,18 @@ function formulaire() {
                     )}
                 </View>
 
-                <View style={styles.btnBottomPage}>
+                <View style={styles.btnSend}>
                     <TouchableOpacity
                         title="submit"
                         onPress={() => { handleSubmit() }}
                     >
                         <Text
-                            style={styles.btnStyleTextValide}
+                            style={styles.btnTextValid}
                         >
                             Envoyer l'incident
                         </Text>
                     </TouchableOpacity>
+
                 </View>
 
             </View>
@@ -419,7 +407,7 @@ function formulaire() {
 
 const CameraPreview = ({ photo, retakePicture, savePhoto }) => {
     return (
-        <View style={styles.camera}>
+        <View>
             <ImageBackground
                 source={{ uri: photo && photo.uri }}
                 style={{ flex: 1, width: "100%", minHeight: 300 }} >
@@ -459,14 +447,9 @@ const CameraPreview = ({ photo, retakePicture, savePhoto }) => {
 const styles = StyleSheet.create({
 
     container: {
-        flex: 1,
-        alignItems: 'stretch',
-        justifyContent: 'space-around',
-        backgroundColor: "#0d1b2a",
-    },
+        backgroundColor: "#fff",
+        justifyContent: "center",
 
-    camera: {
-        flex: 1,
     },
 
     text: {
@@ -479,46 +462,48 @@ const styles = StyleSheet.create({
     textInput: {
         margin: 20,
         borderRadius: 10,
-        backgroundColor: "#778da9",
         color: '#e0e1dd',
         paddingLeft: 10,
-        padding: 5
+        padding: 5,
+        borderWidth: 1,
+        borderColor: "red"
     },
 
     picker: {
         marginTop: 15,
         borderWidth: 2,
-        borderLeftColor: 'white',
+        borderColor: 'red',
         margin: 20,
-        color: 'white',
+        color: 'black',
         fontSize: 16,
         borderRadius: 6,
     },
 
     btn: {
+        flexDirection: "column",
         width: 130,
         borderRadius: 10,
-        justifyContent: "space-between",
-        backgroundColor: '#415A77',
-        justifyContent: 'center',
+        backgroundColor: "#c24444",
+        justifyContent: "space-around",
         alignItems: 'center',
-        marginHorizontal: 5,
         height: 40,
-        position: 'relative',
-        marginLeft: 43,
         marginVertical: 10,
+        alignItems: "center",
     },
 
-    btncenter: {
-        width: 130,
+    outBtnCenter: {
+        alignItems: "center",
+
+    },
+
+    InbtnCenter: {
+        width: 150,
         borderRadius: 4,
-        backgroundColor: '#415A77',
-        justifyContent: "space-between",
-        alignItems: 'center',
+        backgroundColor: "#c24444",
+        justifyContent: "space-around",
         height: 40,
-        position: 'relative',
-        marginTop: 10,
-        marginLeft: "30%",
+        marginTop: 15,
+        marginBottom: 10,
     },
 
     btnStyleText: {
@@ -561,8 +546,12 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
 
-    btnBottomPage: {
-        borderRadius: 4,
+    btnCenterBottom: {
+        flexDirection: "row",
+        justifyContent: "space-around",
+    },
+
+    btnSend: {
         backgroundColor: '#72B01D',
         justifyContent: 'center',
         alignItems: 'center',
@@ -571,7 +560,7 @@ const styles = StyleSheet.create({
         height: 50,
     },
 
-    btnStyleTextValide: {
+    btnTextValid: {
         color: 'black',
         fontWeight: 'bold',
         fontSize: 28,
@@ -582,6 +571,8 @@ const styles = StyleSheet.create({
         width: Dimensions.get('window').width,
         height: Dimensions.get('window').height - 400,
         marginVertical: 10,
+        borderWidth: 5,
+        borderColor: "black",
     },
 });
 export default formulaire
